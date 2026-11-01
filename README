@@ -1,0 +1,19 @@
+Team 3 — Prediction When 𝑝 ≫ 𝑛
+Question. With thousands of variables and dozens of observations, OLS has no unique solution and a perfect training fit is always available. 
+What works, and how much should you trust the variables your model selects?
+Data. Available directly in the ISLR2 package:
+• Khan — 83 samples, 2,308 genes, 4 tumour classes (pre-split into train/test);
+• NCI60 — 64 cell lines, 6,830 genes, 14 cancer types.
+Pick one as primary. Also run a small simulation with sparse known 𝛽, 𝑝 in the thousands and 𝑛 in the tens, so you can compare selected variables to the truth.
+Core tasks
+1. Show why the naive approach fails. Fit an unpenalized model with 𝑝 > 𝑛: perfect training fit, non-identifiable coefficients, test performance no better 
+than chance.
+2. Compare four strategies: penalization (ridge, lasso, elastic net); marginal screening (rank by univariate association, keep top 𝑘, treat 𝑘 as a tuning parameter); 
+dimension reduction (PCR or PLS, tuning the number of components); and a method suited to wide data (random forest or linear-kernel SVM).
+3. Avoid selection bias — the central trap here. With thousands of variables, some will correlate with the response by chance. Every screening and tuning step must 
+sit inside the resampling loop. Required: run the analysis with screening outside CV and again with it inside, and report the difference. 
+Then run the “outside” version on a permuted response, where the true error is known to be chance level.
+4. Report uncertainty. With 𝑛 in the tens, CV error is highly variable. Use repeated CV and state whether the gap between methods exceeds the spread across repetitions. 
+If a ranking is indistinguishable from noise, say so.
+STAT 847 extension. Stack learners built on different strategies (penalized, screening-based, component-based) and test whether the combination beats the best single one. 
+Also implement stability selection — keep only variables selected above a frequency threshold across subsamples — and assess its effect on both reliability and prediction.
