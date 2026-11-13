@@ -1,4 +1,4 @@
-install.packages(c("ISLR2","tidymodels"))
+#install.packages(c("ISLR2","tidymodels"))
 
 library(ISLR2)
 library(tidymodels)
