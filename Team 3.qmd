@@ -1,0 +1,89 @@
+---
+title: "Team 3"
+format: pdf
+editor: visual
+---
+
+## Introduction:
+
+Under microscopic examination, biopsy samples from four tumor classes—Ewing sarcoma, rhabdomyosarcoma, neuroblastoma, and Burkitt lymphoma—can appear indistinguishable. Because treatment options vary by tumor type, an accurate diagnosis helps guide timely treatment decisions. Measuring the abundance of RNA from individual genes provides a gene expression profile that can help identify the tumor type. Predicting tumor type from these profiles presents a statistical challenge. In the Khan data set (Khan et al., 2001), each sample has $p = 2{,}308$ gene expression measurements, while there are only $n = 63$ training samples. When $p \gg n$, a model can fit patterns that arise by chance in the training data, making it harder to predict tumor type accurately in new samples.
+
+The Khan data set contains 83 samples across the four tumor classes, with 63 used for training and 20 held out for testing. Since the number of predictor columns exceeds the number of training observations, the columns of the training design matrix $X$ are linearly dependent. Consequently, ordinary least squares has infinitely many coefficient vectors $\boldsymbol{\beta}$ that produce the same fitted values on the training data. These coefficient vectors can produce different predictions for a new sample. This motivates our central question: which modelling strategies accurately predict tumor classes in unseen samples?
+
+We compared four strategies: penalization, marginal screening, dimension reduction, and methods that can be applied directly to high-dimensional data, including random forests and support vector machines. Elastic net performed best among the standalone models in cross-validation and tied with random forest for the highest test accuracy.
+
+## Data and Simulation Design:
+
+We simulated $n_{\text{train}} = 60$ training observations and an independent test set of $n_{\text{test}} = 1{,}000$ observations, each with $p = 2{,}000$ predictors. The data contained $K = 4$ balanced classes, with 15 training observations and 250 test observations per class. We shuffled the class labels separately in each set.
+
+We first drew every predictor value independently from a standard normal distribution, $\mathcal{N}(0,1)$. To introduce a known signal, we designated $s = 8$ predictors as informative, with two assigned to each class. For each observation, we added the two mean shifts corresponding to its assigned class.
+
+| Class | First predictor | Mean shift | Second predictor | Mean shift |
+|:------|----------------:|-----------:|-----------------:|-----------:|
+| 1     |               5 |        3.0 |               20 |       -2.5 |
+| 2     |             100 |        2.0 |              250 |       -3.0 |
+| 3     |             400 |        2.5 |              650 |       -3.5 |
+| 4     |             900 |        3.5 |            1,200 |       -2.0 |
+
+For example, a class 1 observation received a shift of $+3.0$ on predictor 5 and $-2.5$ on predictor 20. The remaining 1,992 predictors received zero shifts in every class and therefore followed the same standard normal distribution across classes. We used the independent test set to evaluate how accurately the fitted models classified new observations.
+
+## Statistical Methods:
+
+## Ordinary Least Squares:
+
+Let $X = [\mathbf{x}_1\ \mathbf{x}_2\ \cdots\ \mathbf{x}_p]$ be the $n \times p$ predictor matrix. The homogeneous system $X\boldsymbol{\beta}=\mathbf{0}$ has $n$ equations and $p$ unknowns. When $p>n$, there are at most $n$ pivot variables, so at least one variable is free. Therefore the system has a nonzero solution, which means the columns of $X$ are linearly dependent.
+
+Ordinary least squares (OLS) minimizes the residual sum of squares:
+
+$$
+\operatorname{RSS}(\boldsymbol{\beta})
+= \|\mathbf{y}-X\boldsymbol{\beta}\|_2^2
+$$
+
+If $\widehat{\boldsymbol{\beta}}$ is one least-squares solution and $X\mathbf{v}=\mathbf{0}$, then:
+
+$$
+X(\widehat{\boldsymbol{\beta}}+\mathbf{v})
+= X\widehat{\boldsymbol{\beta}}
+$$
+
+Thus infinitely many coefficient vectors produce the same fitted values on the training data. For a new predictor vector $\mathbf{x}_{\mathrm{new}}$, their predictions differ whenever $\mathbf{x}_{\mathrm{new}}^\top\mathbf{v}
+\ne 0$.
+
+### Finding one solution with QR decomposition
+
+Since $X^\top X$ is singular, the inverse formula $(X^\top X)^{-1}X^\top\mathbf{y}$ does not exist. If $X$ has full row rank, a column-pivoted QR decomposition gives:
+
+$$
+X = Q[R_1\ R_2]
+$$
+
+where $Q$ is an $n \times n$ orthogonal matrix and $R_1$ is an invertible $n \times n$ upper-triangular matrix. Let $\boldsymbol{\beta}_1$ contain the first $n$ coefficients and $\boldsymbol{\beta}_2$ contain the remaining $p-n$ coefficients. Multiplying $X\boldsymbol{\beta}=\mathbf{y}$ by $Q^\top$ gives
+
+$$
+R_1\boldsymbol{\beta}_1+R_2\boldsymbol{\beta}_2=Q^\top\mathbf{y}
+$$
+
+Setting the free coefficients $\boldsymbol{\beta}_2$ to zero gives one solution:
+
+$$
+\boldsymbol{\beta}_1=R_1^{-1}Q^\top\mathbf{y}
+$$
+
+### Applying OLS to the Khan data
+
+For the four-class response, each class $k$ has a training indicator vector $\mathbf{y}_k$ with entries equal to 1 for observations in that class and 0 otherwise. We fit one least-squares coefficient vector $\widehat{\boldsymbol{\beta}}_k$ per class. For a new observation $\mathbf{x}$, we compute the class scores and predict the class with the highest score,
+
+$$
+s_k(\mathbf{x})=\mathbf{x}^\top\widehat{\boldsymbol{\beta}}_k,
+\qquad
+\widehat y(\mathbf{x})=\arg\max_{k\in\{1,2,3,4\}}s_k(\mathbf{x})
+$$
+
+In the Khan training set, the predictor matrix has $n=63$ rows, $p=2{,}308$ columns, and rank 63. By the rank-nullity theorem,
+
+$$
+\dim(\ker X)=p-\operatorname{rank}(X)=2{,}308-63=2{,}245
+$$
+
+Full row rank lets OLS fit each training class indicator vector exactly. The resulting training classifications are therefore perfect. Performance on new observations must be assessed using held-out data, since the exact training fit provides no guarantee of accurate predictions on new samples. ---
